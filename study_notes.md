@@ -124,3 +124,79 @@
 - Spatial Pyramid Pooling
   - Conv Layer들을 거쳐서 추출된 피쳐맵을 다양한 타겟 사이즈로 비닝 진행
   - 비닝된 셀마다 max pooking, avg pooling 진행
+
+## Day 3 : Fast R-CNN, Faster R-CNN
+
+### Fast RCNN
+
+- Overall Architecture
+  1. 이미지를 CNN에 넣어 feature 추출 : VGG16 사용
+  2. RoI Projection을 통해 feature map 상에서 RoI를 계산
+  3. RoI Pooling을 통해 일정한 크기의 feature가 추출
+    - 고정된 vector 얻기 위한 과정
+    - SPP 사용
+      - pyramid level : 1
+      - Target grid size : 7 x 7 
+  4. Fully connected layer 이후, Softmax Classifier과 Bounding Box Regressor
+     - 클래스 개수 : C + 1개
+       - 클래스 (C 개) + 배경 (1r개)
+
+- Training
+
+  - multi task loss 사용
+    - classification loss + bounding box regression
+  - Loss function
+    - classification (Cross entropy)
+    - bounding box regressor (Smooth L1)
+  - Dataset 구성
+    - IoU > 0.5: positive samples
+    - 0.1 < IoU < 0.5: negative samples
+    - Positive samples 25%, negative samples 75%
+  - Hierarchical sampling
+    - R-CNN의 경우 이미지에 존재하는 RoI를 전부 저장해 사용
+    - 한 배치에 서로 다른 이미지의 RoI가 포함됨
+    - Fast R-CNN의 경우 한 배치에 한 이미지의 RoI만 포함
+    - 한 배치 안에서 연산과 메모리를 공유할 수 있음
+
+### Faster RCNN
+
+- Pipeline
+
+  1. 이미지를 CNN에 넣어 feature maps 추출 (CNN을 한 번만 사용)
+  2. RPN을 통해 RoI 계산
+     - 기존의 selective search 대체
+     - Anchor box 개념 사용
+       - Anchor box : 각 피쳐마다 다양한 크기와 비율로 미리 정의된 박스
+
+    - Region Proposal Network (RPN)
+      2-1. CNN에서 나온 feature map을 input으로 받음. (𝐻: 세로, 𝑊: 가로, 𝐶: 채널)
+      2-2. 3x3 conv 수행하여 intermediate layer 생성
+      2-3. 1x1 conv 수행하여 binary classification 수행
+
+  3. RPN에서 뽑은 N개의 박스를 대상으로 RoI Pooling을 통해 일정한 크기의 feature가 추출
+  4. Fully connected layer 이후, Softmax Classifier과 Bouding Box Regressor
+
+- NMS
+  - 유사한 RPN Proposals 제거하기 위해 사용
+  - Class score를 기준으로 proposals 분류
+  - IoU가 0.7 이상인 proposals 영역들은 중복된 영역으로 판단한 뒤 제거
+
+- Training
+
+  - Region Proposal Network (RPN)
+    - RPN 단계에서 classification과 regressor학습을 위해 앵커박스를 positive/- negative samples 구분
+  - 데이터셋 구성
+    - IoU > 0.7 or highest IoU with GT: positive samples
+    - IoU < 0.3: negative samples
+    - Otherwise : 학습데이터로 사용 X
+  - RPN 단계에서 classification과 regressor학습을 위해 앵커박스를  positive/- negative samples 구분
+
+  - Region proposal 이후
+
+    - Fast RCNN 학습을 위해 positive/negative samples로 구분
+    - 데이터셋 구성
+      - IoU > 0.5: positive samples → 32개
+      - IoU < 0.5: negative samples → 96개
+      - 128개의 samples로 mini-bath 구성
+    - Loss 함수
+      - Fast RCNN과 동일
