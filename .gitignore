@@ -1,0 +1,59 @@
+# ------------------------
+# Python
+# ------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.pickle
+*.db
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# ------------------------
+# Jupyter Notebook
+# ------------------------
+.ipynb_checkpoints/
+
+# ------------------------
+# Data & Models
+# ------------------------
+data/
+datasets/
+*.csv
+*.tsv
+*.json
+*.xlsx
+
+# Trained models
+*.h5
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Results
+results/
+outputs/
+runs/
+
+# ------------------------
+# Logs & Cache
+# ------------------------
+logs/
+*.log
+*.cache/
+*.egg-info/
+
+# ------------------------
+# IDE / Editor
+# ------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
