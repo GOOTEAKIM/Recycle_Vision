@@ -200,3 +200,104 @@
       - 128개의 samples로 mini-bath 구성
     - Loss 함수
       - Fast RCNN과 동일
+
+## Day 4 : Object Detection
+
+### Object Detection을 위한 라이브러리
+
+- 통합된 라이브러리의 부재
+- 실무, 캐글에서 MMDetection, Detectron2 를 주로 사용
+
+| | MMDetection | Detectron2 |
+| - | - |- |
+| **특징** | - 전체 프레임워크를 모듈 단위로 분리해 관리할 수 있음  <br> - 많은 프레임워크를 지원함 <br> - 다른 라이브러리에 비해 빠름 | - 전체 프레임워크를 모듈 단위로 분리해 관리할 수 있음 <br> - OD 외에도 Segmentation, Pose prediction 등의 알고리즘을 지원함 |
+| **지원 모델** | - Fast R-CNN <br> - SSD <br> - YOLO v3 <br> - DETR <br> | - Faster R-CNN <br> - RetinaNet <br> - Mask R-CNN <br> - DETR <br> |
+
+### MMDetection
+
+https://github.com/open-mmlab/mmdetection
+
+- Pytorch 기반의 Object Detection 오픈소스 라이브러리
+- 커스텀이나 튜닝을 위해서는 라이브러리를 완벽히 이해하는게 많이 요구된다
+
+- 하나의 config 파일에서 Backbone, Neck, Densehead, RoIHead 모든 파이프라인을 커스터마이징 가능
+  - Backbone : 입력 이미지를 특정 map으로 변형
+  - Neck : backbone과 head를 연결, Feature map을 재구성 (ex. FPN)
+  - DenseHead : Feature map의 dense location을 수행하는 부분
+  - RoIHead : RoI 특징을 입력으로 받아 box 분류, 좌표 회귀 등을 예측하는 부분
+
+- Pipeline
+  - 라이브러리, 모듈 import
+  - config 파일 불러오기
+  - config 파일 수정
+  - 모델, 데이터셋 build
+  - 학습
+
+- Config file 
+  - 구조
+    - configs를 통해 데이터셋부터 모델, scheduler, optimizer 정의 가능
+    - 특히, configs에는 다양한 object detection 모델들의 config 파일들이 정의돼 있음
+    - 그 중, configs/base/ 폴더에 가장 기본이 되는 config 파일이 존재
+  - dataset, model, schedule, default_runtime 4가지 기본 구성요소 존재
+  - 각각의 base/ 폴더에는 여러 버전의 config들이 담겨있음
+    - Dataset – COCO, VOC, Cityscape 등
+    - Model – faster_rcnn, retinanet, rpn 등
+  - 틀이 갖춰진 config를 상속 받고, 필요한 부분만 수정해 사용함
+
+- Dataset
+  - samples_per_gpu
+  - workers_per_gpu
+  - train
+  - val
+  - test
+
+  - train  pipeline
+    - Load Image From File
+    - Load Annotations
+    - Resize
+    - RandomFlip
+    - Normalize
+    - Pad
+    - DefaultFormat Bundle
+    - Collect
+
+- Model
+
+  - 2 stage model
+    - type
+      - 모델 유형
+      - ex) FasterRCNN, RetinaNet...
+    - backbone
+      - 인풋 이미지를 feature map으로 변형해주는 네트워크
+      - ex) ResNet, ResNext, HRNet...
+    - neck
+      - Backbone과 head를 연결
+      - Feature map을 재구성
+      - ex) FPN, NAS_FPN, PAFPN...
+    - rpn_head
+      - Region Proposal Network
+      - RPNHead, Anchor_Free_Head...
+      - Anchor_generator
+      - Bbox_coder
+      - Loss_cls
+      - Loss_bbox
+    - roi_head
+      - Region of Interest
+      - StandardRoIHead, CascadeRoIHead...
+      - bbox_roi_extractor
+      - bbox_head
+    - bbox_head
+    - train_cfg
+    - test_cfg
+
+  - 커스텀 backbone 모델 등록
+    1. 새로운 backbone 등록
+    2. 모듈 import
+    3. 등록한 backbone 사용
+
+- Runtim settings
+  - Optimizer
+    - ex) SGD, Adam...
+  - Training schedules
+    - learning rate
+    - runner
