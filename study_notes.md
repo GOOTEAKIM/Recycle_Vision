@@ -204,9 +204,7 @@
 ## Day 4 : Object Detection
 
 ### Object Detection을 위한 라이브러리
-
-- 통합된 라이브러리의 부재
-- 실무, 캐글에서 MMDetection, Detectron2 를 주로 사용
+ 
 
 | | MMDetection | Detectron2 |
 | - | - |- |
@@ -301,3 +299,48 @@ https://github.com/open-mmlab/mmdetection
   - Training schedules
     - learning rate
     - runner
+
+## Day 5 : Detectron2
+
+- Facebook AI Research의 Pytorch 기반 라이브러리
+- Object Detection 외에도 Segmentation, Pose prediction 등 알고리즘도 제공
+
+- pipeline
+  - Setup Config
+  - Setup Trainer
+    - build_model
+    - build_detection_train / test_loader
+    - build_optimizer
+    - build_Ir_scheduler
+  - Start Training
+
+- Config File
+  - MMDetection과 유사하게 config 파일을 수정, 이를 바탕으로 파이프라인을 build하고 학습함
+  - 틀이 갖춰진 기본 config를 상속 받고, 필요한 부분만 수정해 사용함
+
+- Dataset
+  - config
+    - 데이터셋, 데이터로더와 관련된 config
+    - TRAIN, TEST에 각각 등록한 train 데이터셋과 test 데이터셋의 이름을 입력함
+    - 데이터셋, 데이터로더와 관련된 config
+    - TRAIN, TEST에 각각 등록한 train 데이터셋과 test 데이터셋의 이름을 입력함
+
+- Dataset 등록
+  - 커스텀 데이터셋을 사용하고자 할 때는 데이터셋을 등록해야함
+  - (옵션) 전체 데이터셋이 공유하는 정보 (ex. class명, 파일 디렉토리 등)을 메타 데이터로 등록할 수 있음
+
+- Model
+  - Backbone
+    - 인풋 이미지를 특징맵으로 변형해주는 네트워크
+    - ex) ResNet, RegNet 
+  - FPN
+    - Backbone과 head를 연결, Feature map을 재구성
+  - ANCHOR_GENERATOR
+  - RPN
+  - ROI_HEADS
+  - ROI_BOX_HEAD
+
+- Solver
+  - LR_SCHEDULER
+  - WEIGHT_DECAY
+  - CLIP_GRADIENTS
